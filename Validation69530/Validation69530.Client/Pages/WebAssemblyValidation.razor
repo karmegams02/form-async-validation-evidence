@@ -1,0 +1,127 @@
+﻿@page "/validation-webassembly"
+@rendermode InteractiveWebAssembly
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Forms
+@using Validation69530.Client.Validation
+@inject UsernameAvailabilityService Availability
+
+<PageTitle>Async Validation - WebAssembly</PageTitle>
+
+<h1>Async validation - Interactive WebAssembly</h1>
+
+<p>
+    Change the simulated service behavior before changing the username or
+    submitting the form.
+</p>
+
+<div class="mb-3">
+    <label for="wasm-outcome" class="form-label">
+        Availability service result
+    </label>
+
+    <select id="wasm-outcome"
+            class="form-select"
+            @bind="Availability.Outcome">
+        <option value="@AvailabilityOutcome.Available">Available</option>
+        <option value="@AvailabilityOutcome.Taken">Taken</option>
+        <option value="@AvailabilityOutcome.Failure">Throw exception</option>
+    </select>
+</div>
+
+<EditForm EditContext="editContext"
+          OnValidSubmit="HandleValidSubmit"
+          OnInvalidSubmit="HandleInvalidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="wasm-username" class="form-label">
+            Username
+        </label>
+
+        <InputText id="wasm-username"
+                   class="form-control"
+                   @bind-Value="model.Username" />
+
+        <ValidationMessage For="() => model.Username" />
+
+        @if (editContext.IsValidationPending(usernameField))
+        {
+            <div class="text-secondary" role="status">
+                Checking username availability...
+            </div>
+        }
+
+        @if (editContext.IsValidationFaulted(usernameField))
+        {
+            <div class="alert alert-warning mt-2"
+                 role="alert"
+                 data-testid="wasm-field-retry">
+                Username availability could not be checked. Try again.
+            </div>
+        }
+    </div>
+
+    @if (editContext.IsValidationPending())
+    {
+        <div class="text-secondary" role="status">
+            Validating the form...
+        </div>
+    }
+
+    @if (editContext.IsValidationFaulted())
+    {
+        <div class="alert alert-danger"
+             role="alert"
+             data-testid="wasm-form-retry">
+            The form could not be validated. Try submitting again.
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary">
+        Create account
+    </button>
+</EditForm>
+
+@if (submitOutcome is not null)
+{
+    <p class="mt-3" role="status">@submitOutcome</p>
+}
+
+@code {
+    private readonly SignupModel model = new();
+    private EditContext editContext = default!;
+    private FieldIdentifier usernameField;
+    private string? submitOutcome;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(model);
+        usernameField = editContext.Field(nameof(SignupModel.Username));
+        editContext.OnValidationStateChanged += HandleValidationStateChanged;
+    }
+
+    private void HandleValidSubmit(EditContext context)
+    {
+        submitOutcome = "Account submission is valid.";
+    }
+
+    private void HandleInvalidSubmit(EditContext context)
+    {
+        submitOutcome = context.IsValidationFaulted()
+            ? "Account submission could not be validated. Try again."
+            : "Account submission is invalid.";
+    }
+
+    private void HandleValidationStateChanged(
+        object? sender,
+        ValidationStateChangedEventArgs args)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        editContext.OnValidationStateChanged -=
+            HandleValidationStateChanged;
+    }
+}

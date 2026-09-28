@@ -1,0 +1,28 @@
+﻿<script type="module" src="@Assets["Components/Layout/NavMenu.razor.js"]"></script>
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Validation #69530</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div id="nav-scrollable" class="nav-scrollable">
+    <div class="nav-item px-3">
+        <NavLink class="nav-link" href="validation-server"
+                 Match="NavLinkMatch.All">
+            <span class="bi bi-list-nested-nav-menu"
+                  aria-hidden="true"></span>
+            Validation Server
+        </NavLink>
+    </div>
+
+    <div class="nav-item px-3">
+        <NavLink class="nav-link" href="validation-webassembly">
+            <span class="bi bi-list-nested-nav-menu"
+                  aria-hidden="true"></span>
+            Validation WebAssembly
+        </NavLink>
+    </div>
+</div>
