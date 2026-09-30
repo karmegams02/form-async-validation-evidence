@@ -83,15 +83,22 @@
     </button>
 </EditForm>
 
-@if (submitOutcome is not null)
-{
-    <p class="mt-3" role="status">@submitOutcome</p>
-}
+<div class="mt-3" role="status">
+    <p class="mb-1">Valid submit callbacks: @validSubmitCount</p>
+    <p class="mb-1">Invalid submit callbacks: @invalidSubmitCount</p>
+
+    @if (submitOutcome is not null)
+    {
+        <p class="mb-0">Last outcome: @submitOutcome</p>
+    }
+</div>
 
 @code {
     private readonly SignupModel model = new();
     private EditContext editContext = default!;
     private FieldIdentifier usernameField;
+    private int validSubmitCount;
+    private int invalidSubmitCount;
     private string? submitOutcome;
 
     protected override void OnInitialized()
@@ -103,11 +110,13 @@
 
     private void HandleValidSubmit(EditContext context)
     {
+        validSubmitCount++;
         submitOutcome = "Account submission is valid.";
     }
 
     private void HandleInvalidSubmit(EditContext context)
     {
+        invalidSubmitCount++;
         submitOutcome = context.IsValidationFaulted()
             ? "Account submission could not be validated. Try again."
             : "Account submission is invalid.";
